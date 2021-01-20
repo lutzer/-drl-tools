@@ -25,6 +25,7 @@ from google.cloud import speech
 from six.moves import queue
 import threading
 import time
+import json
 
 # Audio recording parameters
 RATE = 16000
@@ -97,6 +98,16 @@ class MicrophoneStream(object):
 
           yield b"".join(data)
 
+def parseSpeechResponse(response):
+  data = []
+  for result in response.results:
+    for alternative in result.alternatives:
+      data.append({
+        "transcript" : alternative.transcript,
+        "confidence" : alternative.confidence
+      })
+  return data
+
 class SpeechTranscribeThread (threading.Thread):
   def __init__(self, client, streaming_config, requests):
       threading.Thread.__init__(self)
@@ -107,6 +118,7 @@ class SpeechTranscribeThread (threading.Thread):
 
       self.running = False
       self.lastChangeTime = 0
+      self.output = []
 
   def run(self):
       self.running = True
@@ -122,12 +134,13 @@ class SpeechTranscribeThread (threading.Thread):
         self.lastChangeTime = time.time()
       
         if response.results[0].is_final:
-          print(response)
+          self.output.append(parseSpeechResponse(response))
           continue
 
         if not self.running:
-          print(response)
+          self.output.append(parseSpeechResponse(response))
           break
+
 
   def stop(self):
     self.running = False
@@ -138,7 +151,8 @@ def record(language, duration, timeout):
       encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
       sample_rate_hertz=RATE,
       language_code=language,
-      max_alternatives=10
+      max_alternatives=10,
+      enable_automatic_punctuation=True
   )
 
   streaming_config = speech.StreamingRecognitionConfig(
@@ -159,10 +173,12 @@ def record(language, duration, timeout):
         if timeout > 0 and (currentTime > thread.lastChangeTime + timeout):
           break; 
         if currentTime > (thread.startTime + duration):
-          break; 
-        time.sleep(0.01)
+          break;
+        time.sleep(0.1)
       stream.closed = True
       thread.join()
+      
+      sys.stdout.write(json.dumps(thread.output))
 
 
 if __name__ == "__main__":

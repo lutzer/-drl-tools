@@ -1,4 +1,4 @@
-# speech to text module
+# Text to Speech Module
 
 ## Prerequisites
 
@@ -10,9 +10,4 @@
 
 * create virtual environment : `python3 -m venv .venv`
 * activate `source .venv/bin/activate` (`deactivate` to exit)
-* install dependencies `pip install -r requirements.txt`
-
-## Links
-
-* https://medium.com/google-cloud/building-a-web-server-which-receives-a-browser-microphone-stream-and-uses-dialogflow-or-the-speech-62b47499fc71
-* https://github.com/googleapis/python-speech/tree/master/samples/snippets
+* install dependencies `pip i -r requirements.txt`
