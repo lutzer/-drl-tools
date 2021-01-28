@@ -6,6 +6,11 @@
 * save credentials in json file
 * set environment var: `export GOOGLE_APPLICATION_CREDENTIALS="/path/to/keyfile.json"`
 
+## Installation
+
+* install pipx: `brew install pipx`
+* run `pipx install .`
+
 ## Development
 
 * create virtual environment : `python3 -m venv .venv`

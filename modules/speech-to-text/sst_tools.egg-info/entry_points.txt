@@ -1,0 +1,4 @@
+[console_scripts]
+sst_transcribe = sst_transcribe.sh:main
+stt_record = stt_record.sh:main
+

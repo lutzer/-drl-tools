@@ -180,13 +180,15 @@ def record(language, duration, timeout):
       
       sys.stdout.write(json.dumps(thread.output))
 
-
-if __name__ == "__main__":
+def main():
   parser = argparse.ArgumentParser(
       description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
   )
-  parser.add_argument("--duration", dest="duration", help="maximum recording duration in seconds", default=60, type=int)
+  parser.add_argument("--duration", dest="duration", help="maximum recording duration in seconds", default=5, type=int)
   parser.add_argument("--timeout", dest="timeout", help="stop recording after beeing silent for spceified time in seconds.", default=0, type=int)
   parser.add_argument("--lang", dest="lang", help="language of file", default="en")
   args = parser.parse_args()
   record(language = args.lang, duration = args.duration, timeout = args.timeout)
+
+if __name__ == "__main__":
+  main()

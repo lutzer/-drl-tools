@@ -28,7 +28,7 @@ def transcribe(filePath, language):
     for result in response.results:
       print(result)
 
-if __name__ == "__main__":
+def main():
   parser = argparse.ArgumentParser(
       description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
   )
@@ -36,3 +36,6 @@ if __name__ == "__main__":
   parser.add_argument("--lang", dest="lang", help="language of file", default="en")
   args = parser.parse_args()
   transcribe(filePath=args.path,language=args.lang)
+
+if __name__ == "__main__":
+  main()

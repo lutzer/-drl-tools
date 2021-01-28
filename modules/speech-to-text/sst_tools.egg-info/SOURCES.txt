@@ -1,0 +1,8 @@
+README.md
+setup.py
+sst_tools.egg-info/PKG-INFO
+sst_tools.egg-info/SOURCES.txt
+sst_tools.egg-info/dependency_links.txt
+sst_tools.egg-info/entry_points.txt
+sst_tools.egg-info/requires.txt
+sst_tools.egg-info/top_level.txt
