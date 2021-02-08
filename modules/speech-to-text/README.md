@@ -5,7 +5,7 @@
 * setup google text to speech cloud service account
 * save credentials in json file
 * set environment var: `export GOOGLE_APPLICATION_CREDENTIALS="/path/to/keyfile.json"`
-* isnstall portaudio: `brew install portaudio
+* isnstall portaudio: `brew install portaudio`
 
 ## Installation
 
