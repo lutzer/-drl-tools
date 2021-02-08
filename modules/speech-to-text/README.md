@@ -9,7 +9,7 @@
 
 ## Installation
 
-* install pipx: `brew install pipx`
+* install pipx: `brew install pipx; pipx ensurepath`
 * run `pipx install .`
 
 ## Development
