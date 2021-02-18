@@ -8,8 +8,8 @@ setup(
     name='stt_tools',
     entry_points = {
         'console_scripts' : [
-            'stt_record=scripts.stt_record:main',
-            'stt_transcribe=scripts.stt_transcribe:main'
+            'stt_record=stt_scripts.record:main',
+            'stt_transcribe=stt_scripts.transcribe:main'
         ]
     },
     install_requires=required,
