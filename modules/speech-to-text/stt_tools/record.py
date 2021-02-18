@@ -117,7 +117,11 @@ class SpeechTranscribeThread (threading.Thread):
       self.requests = requests
 
       self.running = False
+
       self.lastChangeTime = 0
+      self.startTime = 0
+      self.receivedInput = False
+
       self.output = []
 
   def run(self):
@@ -132,6 +136,7 @@ class SpeechTranscribeThread (threading.Thread):
           continue
 
         self.lastChangeTime = time.time()
+        self.receivedInput = True
       
         if response.results[0].is_final:
           self.output.append(parseSpeechResponse(response))
@@ -145,7 +150,7 @@ class SpeechTranscribeThread (threading.Thread):
   def stop(self):
     self.running = False
 
-def record(language, duration, timeout):
+def record(language, duration, timeout, wait):
   client = speech.SpeechClient()
   config = speech.RecognitionConfig(
       encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -170,10 +175,16 @@ def record(language, duration, timeout):
 
       while True:
         currentTime = time.time()
-        if timeout > 0 and (currentTime > thread.lastChangeTime + timeout):
-          break; 
-        if currentTime > (thread.startTime + duration):
-          break;
+        if wait > 0 and not thread.receivedInput:
+          # intial wait time before there was any input
+          if currentTime > (thread.startTime + wait):
+            break
+        else:
+          # if there was any input or no initial wait configgured
+          if timeout > 0 and (currentTime > thread.lastChangeTime + timeout):
+            break
+          if duration > 0 and currentTime > (thread.startTime + duration):
+            break
         time.sleep(0.1)
       stream.closed = True
       thread.join()
@@ -184,11 +195,12 @@ def main():
   parser = argparse.ArgumentParser(
       description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
   )
-  parser.add_argument("--duration", dest="duration", help="maximum recording duration in seconds", default=5, type=int)
-  parser.add_argument("--timeout", dest="timeout", help="stop recording after beeing silent for spceified time in seconds.", default=0, type=int)
+  parser.add_argument("--wait", dest="wait", help="initial waiting time for first word", default=5, type=int)
+  parser.add_argument("--duration", dest="duration", help="maximum recording duration in seconds", default=0, type=int)
+  parser.add_argument("--timeout", dest="timeout", help="stop recording after beeing silent for spceified time in seconds.", default=3, type=int)
   parser.add_argument("--lang", dest="lang", help="language of file", default="en")
   args = parser.parse_args()
-  record(language = args.lang, duration = args.duration, timeout = args.timeout)
+  record(language = args.lang, duration = args.duration, timeout = args.timeout, wait = args.wait)
 
 if __name__ == "__main__":
   main()
