@@ -62,20 +62,23 @@
   # if installation failed, try it again after reboot
   ```
 
+* make default sound device: `sudo raspi-config`, select System Options > Audio > wm8960-hifi-0
+
 ## Install Software
 
 * install portaudio:
 
-  * `sudo apt-get install libasound-dev`
-
-  * download and build portaudio:
+  * download and build portaudio (with alsapatch):
 
     ```
-    > wget http://files.portaudio.com/archives/pa_stable_v190600_20161030.tgz
-    > tar -xvzf pa_stable_v190600_20161030.tgz 
-    > cd portaudio
-    > ./configure
-    > make
+    sudo apt-get remove libportaudio2
+    sudo apt-get install libasound2-dev
+    git clone -b alsapatch https://github.com/gglockner/portaudio
+    cd portaudio
+    ./configure && make
+    sudo make install
+    sudo ldconfig
+    cd ..
     ```
 
   * install dev package: `sudo apt-get install portaudio19-dev python3-all-dev`
@@ -108,7 +111,7 @@
   ```
 
   * install speech synthesis: `sudo apt-get install festival`
-  * enable projects in node-red: `cat ~/.node-red/settings.js`: set `projects.enabled = true`
+  * enable projects in node-red: `nano ~/.node-red/settings.js`: set `projects.enabled = true`
   * put node-red in autostart: `sudo systemctl enable nodered.service`
   * visit browser on http://raspberrypi.local:1880 and clone project from ` https://github.com/lutzer/drl-tools-flows.git`
 
