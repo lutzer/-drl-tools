@@ -13,18 +13,25 @@
     <script>
       const socket = io('http://localhost:3000');
 
+      const SAMPLE_RATE = 44100
+      const BUFFER_SIZE = 16384;
+
       const startButton = document.getElementById('start');
       const stopButton = document.getElementById('stop');
 
-      var recorder = null;
-      var audioContext = null
-
-      stopButton.addEventListener('click', function() {
-        stopRecording()
-      });
+      var [audioContext, audioRecorder, audioGain] = [ null, null, null]
 
       startButton.addEventListener('click', function() {
-        startRecording()
+        socket.emit('audio/start', {
+          sampleRate: audioContext.sampleRate,
+          bitDepth: 16
+        })
+        recorder.connect(audioContext.destination)
+      });
+
+      stopButton.addEventListener('click', function() {
+        socket.emit('audio/stop')
+        recorder.disconnect()
       });
 
       function onDataAvailable(e) {
@@ -32,31 +39,24 @@
         socket.emit('audio/data', left);
       };
 
-      function startRecording() {
-        socket.emit('audio/start', {
-          sampleRate: audioContext.sampleRate
-        })
-        recorder.connect(audioContext.destination)
-      }
-
-      function stopRecording() {
-        socket.emit('audio/stop')
-        recorder.disconnect()
-      }
-
       // handle mic access
       const intializeRecorder = function(stream) {
-        audioContext = new window.AudioContext();
+        audioContext = new window.AudioContext({
+          sampleRate: SAMPLE_RATE
+        });
 
-        var audioInput = audioContext.createMediaStreamSource(stream);
-        var bufferSize = 2048;
+        const audioSource = audioContext.createMediaStreamSource(stream)
 
-        // create a javascript node
-        recorder = audioContext.createScriptProcessor(bufferSize, 1, 1);
-        // specify the processing function
+        audioGain = audioContext.createGain()
+        audioGain.gain.value = 0.1
+      
+        recorder = audioContext.createScriptProcessor(BUFFER_SIZE, 1, 1);
         recorder.onaudioprocess = onDataAvailable;
+        
         // connect stream to our recorder
-        audioInput.connect(recorder);
+        audioSource.connect(audioGain)
+        audioGain.connect(recorder);
+        recorder.connect(audioContext.destination)
       };
 
       // get microphone

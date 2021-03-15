@@ -44,7 +44,7 @@ describe('Stream Server Tests', () => {
         expect(socket.connected).to.be.true
     })
 
-    it.only('should be able to stream file to server', async () => {
+    it('should be able to stream file to server', async () => {
         const socket = await connectSocket()
         const filepath = __dirname + '/files/sound-wav.wav'
         const fileStream = fs.createReadStream(filepath, { highWaterMark: 8 * 1024 });
@@ -62,5 +62,27 @@ describe('Stream Server Tests', () => {
                 resolve()
             })
         })
-    })
+    }).timeout(5000)
+
+    it('should be able to transcribe audio file', async () => {
+        const socket = await connectSocket()
+        const filepath = __dirname + '/files/my_name_is_siidra.wav'
+        const fileStream = fs.createReadStream(filepath, { highWaterMark: 8 * 1024 });
+        fileStream.on('open', function () {
+            socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16 })
+        });
+        fileStream.on('data', (chunk) => {
+            socket.emit('audio/data', chunk)
+        })
+        fileStream.on('end',function() {
+            socket.emit('audio/stop')
+        });
+        return new Promise((resolve, reject) => {
+            socket.on('audio/result', (data) => {
+                const result = JSON.parse(data)
+                expect(result[0].alternatives[0].transcript).to.equal('hello my name is Steven')
+                resolve()
+            })
+        })
+    }).timeout(6000)
 })
