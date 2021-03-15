@@ -4,6 +4,9 @@ const io = require("socket.io-client")
 const axios = require('axios');
 
 const { startServer } = require('../build/index');
+const { logger } = require('../build/logger')
+
+logger.transports.forEach((t) => (t.silent = true));
 
 const expect = chai.expect
 
