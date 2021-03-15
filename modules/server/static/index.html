@@ -6,15 +6,62 @@
     <title>Document</title>
   </head>
   <body>
-    <button onClick="sendMsg()">Hit Me</button>
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
     <script>
       const socket = io('http://localhost:3000');
 
-      function sendMsg() {
-        socket.emit("message", "HELLO WORLD");
+      const startButton = document.getElementById('start');
+      const stopButton = document.getElementById('stop');
+
+      var recorder = null;
+      var audioContext = null
+
+      stopButton.addEventListener('click', function() {
+        stopRecording()
+      });
+
+      startButton.addEventListener('click', function() {
+        startRecording()
+      });
+
+      function onDataAvailable(e) {
+        var left = e.inputBuffer.getChannelData(0);
+        socket.emit('audio/data', left);
+      };
+
+      function startRecording() {
+        socket.emit('audio/start', {
+          sampleRate: audioContext.sampleRate
+        })
+        recorder.connect(audioContext.destination)
       }
+
+      function stopRecording() {
+        socket.emit('audio/stop')
+        recorder.disconnect()
+      }
+
+      // handle mic access
+      const intializeRecorder = function(stream) {
+        audioContext = new window.AudioContext();
+
+        var audioInput = audioContext.createMediaStreamSource(stream);
+        var bufferSize = 2048;
+
+        // create a javascript node
+        recorder = audioContext.createScriptProcessor(bufferSize, 1, 1);
+        // specify the processing function
+        recorder.onaudioprocess = onDataAvailable;
+        // connect stream to our recorder
+        audioInput.connect(recorder);
+      };
+
+      // get microphone
+      navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then(intializeRecorder);
+
     </script>
   </body>
 </html>
