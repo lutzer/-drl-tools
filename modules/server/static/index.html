@@ -19,25 +19,34 @@
       const startButton = document.getElementById('start');
       const stopButton = document.getElementById('stop');
 
-      var [audioContext, audioRecorder, audioGain] = [ null, null, null]
+      var audioContext, audioRecorder
 
       startButton.addEventListener('click', function() {
-        socket.emit('audio/start', {
-          sampleRate: audioContext.sampleRate,
-          bitDepth: 16
-        })
-        recorder.connect(audioContext.destination)
+        startRecording()
       });
 
       stopButton.addEventListener('click', function() {
-        socket.emit('audio/stop')
-        recorder.disconnect()
+        stopRecording()
       });
 
       function onDataAvailable(e) {
         var left = e.inputBuffer.getChannelData(0);
+
         socket.emit('audio/data', left);
       };
+
+      function startRecording() {
+        socket.emit('audio/start', {
+          sampleRate: SAMPLE_RATE,
+          bitDepth: 16
+        })
+        audioRecorder.connect(audioContext.destination)
+      }
+
+      function stopRecording() {
+        socket.emit('audio/stop')
+        audioRecorder.disconnect()
+      }
 
       // handle mic access
       const intializeRecorder = function(stream) {
@@ -47,16 +56,16 @@
 
         const audioSource = audioContext.createMediaStreamSource(stream)
 
-        audioGain = audioContext.createGain()
+        const audioGain = audioContext.createGain()
         audioGain.gain.value = 0.1
       
-        recorder = audioContext.createScriptProcessor(BUFFER_SIZE, 1, 1);
-        recorder.onaudioprocess = onDataAvailable;
+        audioRecorder = audioContext.createScriptProcessor(BUFFER_SIZE, 1, 1);
+        audioRecorder.onaudioprocess = onDataAvailable;
         
         // connect stream to our recorder
         audioSource.connect(audioGain)
-        audioGain.connect(recorder);
-        recorder.connect(audioContext.destination)
+        audioGain.connect(audioRecorder);
+        audioRecorder.connect(audioContext.destination)
       };
 
       // get microphone

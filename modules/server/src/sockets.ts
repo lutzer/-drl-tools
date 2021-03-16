@@ -1,50 +1,87 @@
-import path from "path";
-import { Server as SocketServer } from "socket.io";
-
-import speech from '@google-cloud/speech';
-import Pumpify from "pumpify";
+import path from "path"
+import { Server as SocketServer } from "socket.io"
+import wav from 'wav'
 
 import { logger } from './logger'
+import { Mode } from "./index";
+import { StreamingSpeechClient } from "./speech"
 
-const startSockets = function(io: SocketServer) {
+const startSockets = function(io: SocketServer, mode : Mode) {
 
+  if (mode == 'transcribe') {
     io.on('connection', (socket) => {
-        logger.info(`${socket.id}: socket connected`)
-  
-        const filePath = path.resolve(__dirname, `../data/track_${socket.id}.wav`)
-        
-        const speechClient = new speech.SpeechClient();
-        var recognizeStream: Pumpify | null = null
-  
-        socket.on('audio/start', (msg) => {
-          
-          //see https://github.com/googleapis/nodejs-speech/blob/master/protos/google/cloud/speech/v1p1beta1/cloud_speech.proto#L196
-          const config = {
-            encoding: 1, 
-            sampleRateHertz: msg.sampleRate,
-            languageCode: 'en-US',
-            audioChannelCount: 1
-          }
-          recognizeStream = speechClient.streamingRecognize({ config: config, interimResults: false })
-            .on('error', (err) => logger.error(err) )
-            .on('data', data => { 
-              socket.emit('audio/result', JSON.stringify(data.results))
-            })
-          logger.info(`${socket.id}: receiving audio stream`)
-        })
-  
-        socket.on('audio/data', (data) => {
-          // var left = convertFloat32ToInt16(data)
-          recognizeStream?.write(data)
-        })
-  
-        socket.on('audio/stop', () => {
-          recognizeStream?.end()
-          socket.emit('audio/received')
-          logger.info(`${socket.id}: audio stream from stopped`)
-        })
-
+      logger.info(`${socket.id}: socket connected`)
+      
+      var speechClient : StreamingSpeechClient = new StreamingSpeechClient()
+      speechClient.on('result', (result) => {
+        socket.emit('speech/result', result)
       })
+      speechClient.on('error', (err) => {
+        logger.error(`${socket.id}: audio stream err: §${err}`)
+        socket.emit('speech/error', err)
+      })
+      speechClient.on('ended', () => {
+        socket.emit('speech/ended')
+      })
+
+      socket.on('audio/start', (msg) => {
+        speechClient.start({languageCode: msg.language, sampleRate: msg.sampleRate})
+        logger.info(`${socket.id}: receiving audio stream`)
+      })
+
+      socket.on('audio/data', (data) => {
+        speechClient?.push(data)
+      })
+
+      socket.on('audio/stop', () => {
+        speechClient?.stop()
+        logger.info(`${socket.id}: audio stream from stopped`)
+      })
+
+      /// cleanup
+      socket.on('disconnect', function() {
+        logger.info(`${socket.id}: socket disconnected`)
+        speechClient?.clear()
+        speechClient.removeAllListeners()
+      });
+
+    })
+  } else {
+    io.on('connection', (socket) => {
+      logger.info(`${socket.id}: socket connected`)
+
+      var fileWriter : wav.FileWriter | null
+
+      socket.on('audio/start', (msg) => {
+        const filePath = path.resolve(__dirname, `../data/track_${socket.id}.wav`)
+        fileWriter = new wav.FileWriter(filePath, {
+          channels: 1,
+          sampleRate: msg.sampleRate,
+          bitDepth: msg.bitDepth
+        });
+        fileWriter.on('end', () => {
+          socket.emit('file/received')
+        })
+        logger.info(`${socket.id}: start write to ${filePath}`)
+      })
+
+      socket.on('audio/data', (data) => {
+        fileWriter?.write(data)
+      })
+
+      socket.on('audio/stop', () => {
+        fileWriter?.end()
+        logger.info(`${socket.id}: stop`)
+      })
+
+      /// cleanup
+      socket.on('disconnect', function() {
+        fileWriter?.end()
+        fileWriter?.removeAllListeners()
+        fileWriter = null
+      });
+    })
+  }
 }
 
 export { startSockets }

@@ -6,15 +6,15 @@ import path from 'path'
 import { config } from './config'
 import { startSockets } from './sockets'
 
-import './global'
+type Mode = 'file' | 'transcribe'
 
-function startServer() : Promise<{ server: HttpServer, port: Number}> {
+function startServer(mode: Mode = 'transcribe') : Promise<{ server: HttpServer, port: Number}> {
   return new Promise( (resolve) => {
     const app = express()
     const http = createServer(app)
     const io = new SocketServer(http)
 
-    startSockets(io);
+    startSockets(io, mode);
 
     app.get('/', (req, res) => {
       res.sendFile(path.resolve(__dirname, "../static/index.html"));
@@ -26,7 +26,7 @@ function startServer() : Promise<{ server: HttpServer, port: Number}> {
   })
 }
 
-export { startServer }
+export { startServer, Mode }
 
 /*
  LINKS:
