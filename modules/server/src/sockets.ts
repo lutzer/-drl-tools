@@ -1,5 +1,5 @@
 import path from "path"
-import { Server as SocketServer } from "socket.io"
+import { Server as SocketServer, Socket } from "socket.io"
 import wav from 'wav'
 
 import { logger } from './logger'
@@ -38,7 +38,7 @@ const startSockets = function(io: SocketServer, mode : Mode) {
         logger.info(`${socket.id}: audio stream from stopped`)
       })
 
-      /// cleanup
+      // cleanup
       socket.on('disconnect', function() {
         logger.info(`${socket.id}: socket disconnected`)
         speechClient?.clear()
@@ -74,7 +74,7 @@ const startSockets = function(io: SocketServer, mode : Mode) {
         logger.info(`${socket.id}: stop`)
       })
 
-      /// cleanup
+      // cleanup
       socket.on('disconnect', function() {
         fileWriter?.end()
         fileWriter?.removeAllListeners()
