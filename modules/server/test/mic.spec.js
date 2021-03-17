@@ -52,7 +52,7 @@ describe('Mic Stream Tests', () => {
             rate: '44100',
             channels: '1',
             debug: false,
-            exitOnSilence: 6
+            exitOnSilence: 0
         });
         const micInputStream = micInstance.getAudioStream();
         const callbackSpy = sinon.spy()
@@ -69,7 +69,7 @@ describe('Mic Stream Tests', () => {
             rate: SAMPLE_RATE,
             channels: 1,
             debug: false,
-            exitOnSilence: 6
+            exitOnSilence: 0
         });
         const micInputStream = micInstance.getAudioStream();
 
@@ -88,7 +88,7 @@ describe('Mic Stream Tests', () => {
             rate: SAMPLE_RATE,
             channels: 1,
             debug: false,
-            exitOnSilence: 6
+            exitOnSilence: 0
         });
         const micInputStream = micInstance.getAudioStream();
         socket.emit('audio/start', { sampleRate: SAMPLE_RATE, language: 'de' })

@@ -6,18 +6,17 @@ import path from 'path'
 import { config } from './config'
 import { startSockets } from './sockets'
 
-type Mode = 'file' | 'transcribe'
-
-function startServer(mode: Mode = 'transcribe') : Promise<{ server: HttpServer, port: Number}> {
+function startServer() : Promise<{ server: HttpServer, port: Number}> {
   return new Promise( (resolve) => {
     const app = express()
     const http = createServer(app)
     const io = new SocketServer(http)
 
-    startSockets(io, mode);
+    startSockets(io);
 
     app.get('/', (req, res) => {
-      res.sendFile(path.resolve(__dirname, "../static/index.html"));
+      res.send('Speech to text server running.')
+      // res.sendFile(path.resolve(__dirname, "../static/index.html"));
     })
 
     const server = http.listen(config.port, () => {
@@ -26,7 +25,7 @@ function startServer(mode: Mode = 'transcribe') : Promise<{ server: HttpServer, 
   })
 }
 
-export { startServer, Mode }
+export { startServer }
 
 /*
  LINKS:

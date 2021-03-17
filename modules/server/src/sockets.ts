@@ -1,87 +1,66 @@
-import path from "path"
 import { Server as SocketServer, Socket } from "socket.io"
-import wav from 'wav'
+import _ from 'lodash'
 
 import { logger } from './logger'
-import { Mode } from "./index";
 import { StreamingSpeechClient } from "./speech"
 
-const startSockets = function(io: SocketServer, mode : Mode) {
+const startSockets = function(io: SocketServer) {
 
-  if (mode == 'transcribe') {
-    io.on('connection', (socket) => {
-      logger.info(`${socket.id}: socket connected`)
-      
-      var speechClient : StreamingSpeechClient = new StreamingSpeechClient()
-      speechClient.on('result', (result) => {
-        socket.emit('speech/result', result)
-      })
-      speechClient.on('error', (err) => {
-        logger.error(`${socket.id}: audio stream err: §${err}`)
-        socket.emit('speech/error', err)
-      })
-      speechClient.on('ended', () => {
-        socket.emit('speech/ended')
-      })
+  io.on('connection', (socket) => {
+    logger.info(`${socket.id}: socket connected`)
+    
+    var speechClient : StreamingSpeechClient = new StreamingSpeechClient()
+    speechClient.on('result', (result) => {
+      socket.emit('speech/result', result)
+    })
+    speechClient.on('error', (err) => {
+      logger.error(`${socket.id}: audio stream err: §${err}`)
+      socket.emit('error', err)
+    })
+    speechClient.on('ended', () => {
+      socket.emit('speech/ended')
+    })
 
-      socket.on('audio/start', (msg) => {
+    socket.on('audio/start', (msg) => {
+      try {
+        if (!_.has(msg,'language')) {
+          throw Error("Msg does not contain language/sampleRate.")
+        }
         speechClient.start({languageCode: msg.language, sampleRate: msg.sampleRate})
         logger.info(`${socket.id}: receiving audio stream`)
-      })
+      } catch(err) {
+        socket.emit('error', err.message)
+        logger.error(err.message)
+      }
+    })
 
-      socket.on('audio/data', (data) => {
+    socket.on('audio/data', (data) => {
+      try {
         speechClient?.push(data)
-      })
+      } catch(err) {
+        socket.emit('error', err.message)
+        logger.error(err.message)
+      }
+    })
 
-      socket.on('audio/stop', () => {
+    socket.on('audio/stop', () => {
+      try {
         speechClient?.stop()
         logger.info(`${socket.id}: audio stream from stopped`)
-      })
-
-      // cleanup
-      socket.on('disconnect', function() {
-        logger.info(`${socket.id}: socket disconnected`)
-        speechClient?.clear()
-        speechClient.removeAllListeners()
-      });
-
+      } catch(err) {
+        socket.emit('error', err.message)
+        logger.error(err.message)
+      }
     })
-  } else {
-    io.on('connection', (socket) => {
-      logger.info(`${socket.id}: socket connected`)
 
-      var fileWriter : wav.FileWriter | null
+    // cleanup
+    socket.on('disconnect', function() {
+      logger.info(`${socket.id}: socket disconnected`)
+      speechClient?.clear()
+      speechClient.removeAllListeners()
+    });
 
-      socket.on('audio/start', (msg) => {
-        const filePath = path.resolve(__dirname, `../data/track_${socket.id}.wav`)
-        fileWriter = new wav.FileWriter(filePath, {
-          channels: 1,
-          sampleRate: msg.sampleRate,
-          bitDepth: msg.bitDepth
-        });
-        fileWriter.on('end', () => {
-          socket.emit('file/received')
-        })
-        logger.info(`${socket.id}: start write to ${filePath}`)
-      })
-
-      socket.on('audio/data', (data) => {
-        fileWriter?.write(data)
-      })
-
-      socket.on('audio/stop', () => {
-        fileWriter?.end()
-        logger.info(`${socket.id}: stop`)
-      })
-
-      // cleanup
-      socket.on('disconnect', function() {
-        fileWriter?.end()
-        fileWriter?.removeAllListeners()
-        fileWriter = null
-      });
-    })
-  }
+  })
 }
 
 export { startSockets }
