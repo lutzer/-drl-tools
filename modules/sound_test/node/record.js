@@ -12,19 +12,22 @@ const sleep = function(time) {
 }
 
 const FILENAME = './output.wav'
+const RATE = 16000
+const CHANNELS = 2
  
 const record = async function() {
     var micInstance = mic({
-        rate: 16000,
-        channels: 1,
+        rate: RATE,
+        channels: CHANNELS,
         debug: true,
-        exitOnSilence: 0
+        exitOnSilence: 0,
+	device: 'hw:1'
     });
     var micInputStream = micInstance.getAudioStream();
      
     var outputFileStream = new FileWriter(FILENAME, {
-        sampleRate: 16000,
-        channels: 1
+        sampleRate: RATE,
+        channels: CHANNELS
     });
      
     micInputStream.pipe(outputFileStream);
