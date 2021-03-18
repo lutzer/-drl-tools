@@ -46,7 +46,7 @@ const startSockets = function(io: SocketServer) {
     socket.on('audio/stop', () => {
       try {
         speechClient?.stop()
-        logger.info(`${socket.id}: audio stream from stopped`)
+        logger.info(`${socket.id}: audio stream stopped`)
       } catch(err) {
         socket.emit('error', err.message)
         logger.error(err.message)

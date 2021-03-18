@@ -1,5 +1,5 @@
 {
-  "name": "node-red-tools-nodes",
+  "name": "node",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,13 +8,9 @@
   },
   "author": "",
   "license": "ISC",
-  "node-red": {
-    "nodes": {
-      "tools-stt": "tools-mic.js"
-    }
-  },
   "dependencies": {
-    "lodash": "^4.17.21",
-    "mic": "^2.1.2"
+    "mic": "^2.1.2",
+    "play-sound": "^1.1.3",
+    "wav": "^1.0.2"
   }
 }

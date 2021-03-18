@@ -30,6 +30,7 @@ class StreamingSpeechClient extends EventEmitter {
     this.$resetTimeout = new Subject()
     this.$stopTimeout = new Subject()
   }
+  
   start({ languageCode, sampleRate, channelCount = 1 } : { languageCode: string, sampleRate: number, channelCount?: number }) {
     
     //see https://github.com/googleapis/nodejs-speech/blob/master/protos/google/cloud/speech/v1p1beta1/cloud_speech.proto#L196
