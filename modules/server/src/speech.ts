@@ -33,7 +33,7 @@ class StreamingSpeechClient extends EventEmitter {
     this.$stopTimeout = new Subject()
   }
   
-  start({ languageCode, sampleRate, channelCount = 1 } : { languageCode: string, sampleRate: number, channelCount?: number }) {
+  start({ languageCode, sampleRate, channelCount = 1, interimResults = false } : { languageCode: string, sampleRate: number, channelCount?: number, interimResults?: boolean }) {
     
     //see https://github.com/googleapis/nodejs-speech/blob/master/protos/google/cloud/speech/v1p1beta1/cloud_speech.proto#L196
     const config = {
@@ -49,16 +49,19 @@ class StreamingSpeechClient extends EventEmitter {
 
     let transcript : string[] = []
 
-    this.recognizeStream = this.speechClient.streamingRecognize({ config, interimResults: false })
+    this.recognizeStream = this.speechClient.streamingRecognize({ config, interimResults: interimResults })
       .on('error', (err) => this.emit('error', JSON.stringify(err)) )
       .on('end', () => { 
-        this.emit('result', JSON.stringify(transcript)) 
-        this.emit('ended') 
+        this.emit('ended', JSON.stringify(transcript)) 
         this.clear()
       })
       .on('data', data => { 
-        let text = data.results[0] && data.results[0].alternatives[0] ? data.results[0].alternatives[0].transcript : null
-        transcript.push(text)
+        const isFinal = data.results[0] ? data.results[0].isFinal : false
+        const text = data.results[0] && data.results[0].alternatives[0] ? data.results[0].alternatives[0].transcript : ""
+        if (isFinal) {
+          this.emit('result', text) 
+          transcript.push(text)
+        }
       })
 
     resetOnIdleTimeout(STREAM_TIMEOUT, MAX_STREAM_TIME, this.$resetTimeout, this.$stopTimeout).subscribe((res) => {

@@ -11,23 +11,23 @@ const startSockets = function(io: SocketServer) {
     
     const speechClient : StreamingSpeechClient = new StreamingSpeechClient()
 
-    speechClient.on('result', (result) => {
-      socket.emit('speech/result', result)
+    speechClient.on('result', (text) => {
+      socket.emit('speech/result', text)
     })
     speechClient.on('error', (err) => {
       logger.error(`${socket.id}: audio stream err: §${err}`)
       socket.emit('error', err)
     })
-    speechClient.on('ended', () => {
-      socket.emit('speech/ended')
+    speechClient.on('ended', (transcript) => {
+      socket.emit('speech/ended', transcript)
     })
 
     socket.on('audio/start', (msg) => {
       try {
-        if (!_.has(msg,'language')) {
+        if (!_.has(msg,'language') || !_.has(msg,'sampleRate')) {
           throw Error("Msg does not contain language/sampleRate.")
         }
-        speechClient.start({languageCode: msg.language, sampleRate: msg.sampleRate})
+        speechClient.start({languageCode: msg.language, sampleRate: msg.sampleRate, interimResults: msg.interimResults || false})
         logger.info(`${socket.id}: receiving audio stream`)
       } catch(err) {
         socket.emit('error', err.message)
