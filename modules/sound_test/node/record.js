@@ -3,6 +3,10 @@ var fs = require('fs')
 var player = require('play-sound')(opts = {})
 var { FileWriter } = require('wav')
 
+const FILENAME = './output.wav'
+const RATE = 16000
+const CHANNELS = 2
+
 const sleep = function(time) {
     return new Promise((resolve) => {
         setTimeout(() => {
@@ -10,10 +14,6 @@ const sleep = function(time) {
         },time)
     })
 }
-
-const FILENAME = './output.wav'
-const RATE = 16000
-const CHANNELS = 2
  
 const record = async function() {
     var micInstance = mic({

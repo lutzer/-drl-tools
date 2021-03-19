@@ -3,16 +3,18 @@ import speech, { SpeechClient } from '@google-cloud/speech';
 import { EventEmitter } from 'events';
 import Pumpify from 'pumpify';
 import { merge, Observable, of, Subject, timer } from 'rxjs';
-import { takeUntil, switchMap } from 'rxjs/operators';
+import { takeUntil, switchMap, mapTo } from 'rxjs/operators';
 
 import { logger } from './logger'
 
 const STREAM_TIMEOUT = 2000 // after what time the stream ends if no data is received
+const MAX_STREAM_TIME = 60000 // maximal recording duration
 
-function resetOnIdleTimeout(timeout: number, $reset: Observable<void>, $stop: Observable<void>) {
-  return merge($reset,of(0)).pipe(switchMap(() => {
-    return timer(timeout)
-  }), takeUntil($stop));
+function resetOnIdleTimeout(timeout: number, maxTime: number, $reset: Observable<void>, $stop: Observable<void>) {
+  return merge($reset, of(0), timer(maxTime).pipe(mapTo('maxtime')))
+    .pipe(switchMap((res) => {
+      return (res == 'maxtime') ? of(res) : timer(timeout).pipe(mapTo('timeout'))
+    }), takeUntil($stop));
 }
 
 class StreamingSpeechClient extends EventEmitter {
@@ -45,17 +47,28 @@ class StreamingSpeechClient extends EventEmitter {
       this.clear()
     }
 
-    this.recognizeStream = this.speechClient.streamingRecognize({ config: config, interimResults: false })
+    let transcript : string[] = []
+
+    this.recognizeStream = this.speechClient.streamingRecognize({ config, interimResults: false })
       .on('error', (err) => this.emit('error', JSON.stringify(err)) )
       .on('end', () => { 
+        this.emit('result', JSON.stringify(transcript)) 
         this.emit('ended') 
         this.clear()
       })
-      .on('data', data => { this.emit('result', JSON.stringify(data.results)) })
+      .on('data', data => { 
+        let text = data.results[0] && data.results[0].alternatives[0] ? data.results[0].alternatives[0].transcript : null
+        transcript.push(text)
+      })
 
-    resetOnIdleTimeout(STREAM_TIMEOUT, this.$resetTimeout, this.$stopTimeout).subscribe(() => {
-      this.emit('error', `stream ended, no data received for ${STREAM_TIMEOUT}ms`)
-      this.clear()
+    resetOnIdleTimeout(STREAM_TIMEOUT, MAX_STREAM_TIME, this.$resetTimeout, this.$stopTimeout).subscribe((res) => {
+      if (res == 'maxtime') {
+        this.emit('warn', `stream ended, reached maximum stream time of ${MAX_STREAM_TIME}ms`)
+        this.stop()
+      } else {
+        this.emit('error', `stream ended, no data received for ${STREAM_TIMEOUT}ms`)
+        this.clear()
+      }
     })
   }
 
@@ -66,9 +79,9 @@ class StreamingSpeechClient extends EventEmitter {
   }
 
   stop() {
+    this.$stopTimeout.next();
     this.recognizeStream?.end()
     this.emit('stopped')
-    this.$stopTimeout.next();
   }
 
   clear() {

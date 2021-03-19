@@ -9,7 +9,8 @@ const startSockets = function(io: SocketServer) {
   io.on('connection', (socket) => {
     logger.info(`${socket.id}: socket connected`)
     
-    var speechClient : StreamingSpeechClient = new StreamingSpeechClient()
+    const speechClient : StreamingSpeechClient = new StreamingSpeechClient()
+
     speechClient.on('result', (result) => {
       socket.emit('speech/result', result)
     })

@@ -26,16 +26,3 @@ function startServer() : Promise<{ server: HttpServer, port: Number}> {
 }
 
 export { startServer }
-
-/*
- LINKS:
- https://cloud.google.com/speech-to-text/docs/streaming-recognize
- https://subvisual.com/blog/posts/39-tutorial-html-audio-capture-streaming-to-node-js-no-browser-extensions/
- https://github.com/miguelgrinberg/socketio-examples/tree/master/audio
- https://blog.takeer.com/streaming-binary-data-using-socket-io/
- https://stackoverflow.com/questions/48627210/how-to-stream-data-over-socket-io-to-client
- https://github.com/dialogflow/selfservicekiosk-audio-streaming/blob/master/examples/simpleserver.js
- https://medium.com/google-cloud/building-a-web-server-which-receives-a-browser-microphone-stream-and-uses-dialogflow-or-the-speech-62b47499fc71
- https://nodesource.com/blog/understanding-streams-in-nodejs/
-
-*/
