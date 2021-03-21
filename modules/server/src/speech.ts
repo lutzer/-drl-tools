@@ -7,33 +7,43 @@ import { takeUntil, switchMap, mapTo } from 'rxjs/operators';
 
 import { logger } from './logger'
 
-const STREAM_TIMEOUT = 2000 // after what time the stream ends if no data is received
-const MAX_STREAM_TIME = 60000 // maximal recording duration
+const STREAM_DATA_TIMEOUT = 2000 // after what time the stream ends if no data is received
 
-function resetOnIdleTimeout(timeout: number, maxTime: number, $reset: Observable<void>, $stop: Observable<void>) {
-  return merge($reset, of(0), timer(maxTime).pipe(mapTo('maxtime')))
+function stopOnTimeout(timeout: number, maxTime: number, initialWait: number, $reset: Observable<void>, $stop: Observable<void>) {
+  return merge($reset, timer(initialWait), timer(maxTime).pipe(mapTo('maxtime')))
     .pipe(switchMap((res) => {
       return (res == 'maxtime') ? of(res) : timer(timeout).pipe(mapTo('timeout'))
+    }), takeUntil($stop));
+}
+
+function stopOnNoData($reset: Observable<void>, $stop: Observable<void>) {
+  return merge($reset, of(''))
+    .pipe(switchMap((res) => {
+      return timer(STREAM_DATA_TIMEOUT)
     }), takeUntil($stop));
 }
 
 class StreamingSpeechClient extends EventEmitter {
 
   speechClient: SpeechClient
-  recognizeStream : Pumpify | null
+  recognizeStream: Pumpify | null
 
-  $resetTimeout : Subject<void>
-  $stopTimeout : Subject<void>
+  $resetTimeout: Subject<void>
+  $stopTimeout: Subject<void>
+  $resetDataTimeout: Subject<void>
 
   constructor() {
     super()
     this.speechClient = new speech.SpeechClient();
     this.recognizeStream = null
+
     this.$resetTimeout = new Subject()
+    this.$resetDataTimeout = new Subject()
     this.$stopTimeout = new Subject()
   }
   
-  start({ languageCode, sampleRate, channelCount = 1, interimResults = false } : { languageCode: string, sampleRate: number, channelCount?: number, interimResults?: boolean }) {
+  start({ languageCode, sampleRate, channelCount = 1, duration = 60, timeout = 5, initialWait = 0 } 
+    : { languageCode: string, sampleRate: number, channelCount?: number, duration? : number, timeout? : number, initialWait?: number }) {
     
     //see https://github.com/googleapis/nodejs-speech/blob/master/protos/google/cloud/speech/v1p1beta1/cloud_speech.proto#L196
     const config = {
@@ -49,13 +59,17 @@ class StreamingSpeechClient extends EventEmitter {
 
     let transcript : string[] = []
 
-    this.recognizeStream = this.speechClient.streamingRecognize({ config, interimResults: interimResults })
-      .on('error', (err) => this.emit('error', JSON.stringify(err)) )
+    this.recognizeStream = this.speechClient.streamingRecognize({ config, interimResults: true })
+      .on('error', (err) => { 
+        this.emit('error', JSON.stringify(err)) 
+        console.log(err)
+      })
       .on('end', () => { 
         this.emit('ended', JSON.stringify(transcript)) 
-        this.clear()
+        // this.clear()
       })
       .on('data', data => { 
+        this.$resetTimeout.next();
         const isFinal = data.results[0] ? data.results[0].isFinal : false
         const text = data.results[0] && data.results[0].alternatives[0] ? data.results[0].alternatives[0].transcript : ""
         if (isFinal) {
@@ -64,21 +78,27 @@ class StreamingSpeechClient extends EventEmitter {
         }
       })
 
-    resetOnIdleTimeout(STREAM_TIMEOUT, MAX_STREAM_TIME, this.$resetTimeout, this.$stopTimeout).subscribe((res) => {
+    stopOnTimeout(timeout * 1000, duration * 1000, initialWait * 1000, this.$resetTimeout, this.$stopTimeout).subscribe((res) => {
       if (res == 'maxtime') {
-        this.emit('warn', `stream ended, reached maximum stream time of ${MAX_STREAM_TIME}ms`)
+        logger.info(`stream ended, reached maximum stream time of ${duration}s.`)
         this.stop()
-      } else {
-        this.emit('error', `stream ended, no data received for ${STREAM_TIMEOUT}ms`)
-        this.clear()
+      } else if (res == 'timeout') {
+        logger.info(`stream ended, nothing said since ${timeout}s.`)
+        this.stop()
       }
     })
+
+    stopOnNoData(this.$resetDataTimeout, this.$stopTimeout).subscribe( () => {
+      this.emit('error', `stream error, no data received for ${STREAM_DATA_TIMEOUT}ms.`)
+      this.clear()
+    })
+
   }
 
   push(chunk : Buffer) {
-    this.recognizeStream?.write(chunk)
-    this.emit('listening')
-    this.$resetTimeout.next();
+    if (this.recognizeStream?.writable)
+      this.recognizeStream.write(chunk)
+    this.$resetDataTimeout.next();
   }
 
   stop() {

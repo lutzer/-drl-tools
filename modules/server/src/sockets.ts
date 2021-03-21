@@ -15,7 +15,7 @@ const startSockets = function(io: SocketServer) {
       socket.emit('speech/result', text)
     })
     speechClient.on('error', (err) => {
-      logger.error(`${socket.id}: audio stream err: §${err}`)
+      logger.error(`${socket.id}: audio stream err: ${err}`)
       socket.emit('error', err)
     })
     speechClient.on('ended', (transcript) => {
@@ -27,7 +27,13 @@ const startSockets = function(io: SocketServer) {
         if (!_.has(msg,'language') || !_.has(msg,'sampleRate')) {
           throw Error("Msg does not contain language/sampleRate.")
         }
-        speechClient.start({languageCode: msg.language, sampleRate: msg.sampleRate, interimResults: msg.interimResults || false})
+        speechClient.start({
+          languageCode: msg.language, 
+          sampleRate: msg.sampleRate, 
+          duration: msg.duration, 
+          timeout: msg.timeout,
+          initialWait: msg.initialWait
+        })
         logger.info(`${socket.id}: receiving audio stream`)
       } catch(err) {
         socket.emit('error', err.message)
