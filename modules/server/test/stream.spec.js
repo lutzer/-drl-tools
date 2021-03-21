@@ -60,7 +60,7 @@ describe('Stream Server Tests', () => {
         const filepath = __dirname + '/files/sound-wav.wav'
         const fileStream = fs.createReadStream(filepath, { highWaterMark: 8 * 1024 });
         fileStream.on('open', function () {
-            socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'de' })
+            socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'de', requestId: 'x' })
         });
         fileStream.on('data', (chunk) => {
             socket.emit('audio/data', chunk)
@@ -81,7 +81,7 @@ describe('Stream Server Tests', () => {
         const filepath = __dirname + '/files/my_name_is_siidra.wav'
         const fileStream = fs.createReadStream(filepath, { highWaterMark: 8 * 1024 });
         fileStream.on('open', function () {
-            socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en' })
+            socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en', requestId: 'x' })
         });
         fileStream.on('data', (chunk) => {
             socket.emit('audio/data', chunk)
@@ -90,9 +90,8 @@ describe('Stream Server Tests', () => {
             socket.emit('audio/stop')
         });
         await new Promise((resolve, reject) => {
-            socket.on('speech/result', (data) => {
-                const result = JSON.parse(data)
-                expect(result[0].alternatives[0].transcript).to.equal('hello my name is Steven')
+            socket.on('speech/ended', (data) => {
+                expect(data.transcript.join()).to.equal('hello my name is Steven')
                 resolve()
             })
         })
@@ -107,9 +106,9 @@ describe('Stream Server Tests', () => {
         const callbackSpy = sinon.spy()
         socket.on('speech/ended', callbackSpy)
 
-        socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en' })
+        socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en', requestId: 'x' })
         fileStream.on('open', function () {
-            socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en' })
+            socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en', requestId: 'x' })
         });
         fileStream.on('data', (chunk) => {
             socket.emit('audio/data', chunk)
@@ -131,9 +130,9 @@ describe('Stream Server Tests', () => {
 
         function sendFile() {
             const fileStream = fs.createReadStream(filepath, { highWaterMark: 8 * 1024 });
-            socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en' })
+            socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en', requestId: 'x' })
             fileStream.on('open', function () {
-                socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en' })
+                socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en', requestId: 'x' })
             });
             fileStream.on('data', (chunk) => {
                 socket.emit('audio/data', chunk)

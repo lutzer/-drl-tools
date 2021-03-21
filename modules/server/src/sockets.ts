@@ -11,23 +11,24 @@ const startSockets = function(io: SocketServer) {
     
     const speechClient : StreamingSpeechClient = new StreamingSpeechClient()
 
-    speechClient.on('result', (text) => {
-      socket.emit('speech/result', text)
+    speechClient.on('result', (result) => {
+      socket.emit('speech/result', result)
     })
     speechClient.on('error', (err) => {
-      logger.error(`${socket.id}: audio stream err: ${err}`)
+      logger.error(`${socket.id}: audio stream err: ${JSON.stringify(err)}`)
       socket.emit('error', err)
     })
-    speechClient.on('ended', (transcript) => {
-      socket.emit('speech/ended', transcript)
+    speechClient.on('ended', (result) => {
+      socket.emit('speech/ended', result)
     })
 
     socket.on('audio/start', (msg) => {
       try {
-        if (!_.has(msg,'language') || !_.has(msg,'sampleRate')) {
-          throw Error("Msg does not contain language/sampleRate.")
+        if (!_.has(msg,'language') || !_.has(msg,'sampleRate') || !_.has(msg,'requestId')) {
+          throw Error("Msg does not contain language/sampleRate/requestId.")
         }
         speechClient.start({
+          requestId: msg.requestId,
           languageCode: msg.language, 
           sampleRate: msg.sampleRate, 
           duration: msg.duration, 
@@ -42,28 +43,18 @@ const startSockets = function(io: SocketServer) {
     })
 
     socket.on('audio/data', (data) => {
-      try {
-        speechClient?.push(data)
-      } catch(err) {
-        socket.emit('error', err.message)
-        logger.error(err.message)
-      }
+        speechClient.push(data)
     })
 
     socket.on('audio/stop', () => {
-      try {
-        speechClient?.stop()
-        logger.info(`${socket.id}: audio stream stopped`)
-      } catch(err) {
-        socket.emit('error', err.message)
-        logger.error(err.message)
-      }
+      speechClient.stop()
+      logger.info(`${socket.id}: audio stream stopped`)
     })
 
     // cleanup
     socket.on('disconnect', function() {
       logger.info(`${socket.id}: socket disconnected`)
-      speechClient?.clear()
+      speechClient.clear()
       speechClient.removeAllListeners()
     });
 

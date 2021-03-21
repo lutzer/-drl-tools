@@ -91,7 +91,7 @@ describe('Mic Stream Tests', () => {
             exitOnSilence: 0
         });
         const micInputStream = micInstance.getAudioStream();
-        socket.emit('audio/start', { sampleRate: SAMPLE_RATE, language: 'de' })
+        socket.emit('audio/start', { sampleRate: SAMPLE_RATE, language: 'de', requestId: 'x' })
         micInputStream.on('data', (chunk) => {
             socket.emit('audio/data', chunk)
         })
@@ -105,9 +105,8 @@ describe('Mic Stream Tests', () => {
         console.log('stop listening.')
         micInstance.stop()
         await new Promise((resolve, reject) => {
-            socket.on('speech/result', (data) => {
-                const result = JSON.parse(data)
-                expect(result[0].alternatives).to.not.be.empty
+            socket.on('speech/ended', (data) => {
+                expect(data.transcript).to.not.be.empty
                 resolve()
             })
         })

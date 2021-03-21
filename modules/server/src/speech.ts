@@ -42,8 +42,15 @@ class StreamingSpeechClient extends EventEmitter {
     this.$stopTimeout = new Subject()
   }
   
-  start({ languageCode, sampleRate, channelCount = 1, duration = 60, timeout = 5, initialWait = 0 } 
-    : { languageCode: string, sampleRate: number, channelCount?: number, duration? : number, timeout? : number, initialWait?: number }) {
+  start({ requestId, languageCode, sampleRate, channelCount = 1, duration = 60, timeout = 5, initialWait = 0 } : { 
+      requestId: string, 
+      languageCode: string, 
+      sampleRate: number, 
+      channelCount?: number, 
+      duration? : number, 
+      timeout? : number, 
+      initialWait?: number 
+    }) {
     
     //see https://github.com/googleapis/nodejs-speech/blob/master/protos/google/cloud/speech/v1p1beta1/cloud_speech.proto#L196
     const config = {
@@ -61,19 +68,19 @@ class StreamingSpeechClient extends EventEmitter {
 
     this.recognizeStream = this.speechClient.streamingRecognize({ config, interimResults: true })
       .on('error', (err) => { 
-        this.emit('error', JSON.stringify(err)) 
+        this.emit('error', { id: requestId, error: JSON.stringify(err) }) 
         console.log(err)
       })
       .on('end', () => { 
-        this.emit('ended', JSON.stringify(transcript)) 
-        // this.clear()
+        this.emit('ended', { id: requestId, transcript: transcript }) 
+        this.clear()
       })
       .on('data', data => { 
         this.$resetTimeout.next();
         const isFinal = data.results[0] ? data.results[0].isFinal : false
         const text = data.results[0] && data.results[0].alternatives[0] ? data.results[0].alternatives[0].transcript : ""
         if (isFinal) {
-          this.emit('result', text) 
+          this.emit('result', { id: requestId, text: text }) 
           transcript.push(text)
         }
       })
@@ -89,10 +96,9 @@ class StreamingSpeechClient extends EventEmitter {
     })
 
     stopOnNoData(this.$resetDataTimeout, this.$stopTimeout).subscribe( () => {
-      this.emit('error', `stream error, no data received for ${STREAM_DATA_TIMEOUT}ms.`)
+      this.emit('error', { id: requestId, error:`stream error, no data received for ${STREAM_DATA_TIMEOUT}ms.` })
       this.clear()
     })
-
   }
 
   push(chunk : Buffer) {
