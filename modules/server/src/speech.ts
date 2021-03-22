@@ -8,8 +8,11 @@ import { takeUntil, switchMap, mapTo } from 'rxjs/operators';
 import { logger } from './logger'
 
 const STREAM_DATA_TIMEOUT = 2000 // after what time the stream ends if no data is received
+const MAX_DURATION = 60000
 
 function stopOnTimeout(timeout: number, maxTime: number, initialWait: number, $reset: Observable<void>, $stop: Observable<void>) {
+  timeout = timeout == 0 ? maxTime+1 : timeout
+  maxTime = Math.min(MAX_DURATION, maxTime)
   return merge($reset, timer(initialWait), timer(maxTime).pipe(mapTo('maxtime')))
     .pipe(switchMap((res) => {
       return (res == 'maxtime') ? of(res) : timer(timeout).pipe(mapTo('timeout'))
@@ -68,8 +71,8 @@ class StreamingSpeechClient extends EventEmitter {
 
     this.recognizeStream = this.speechClient.streamingRecognize({ config, interimResults: true })
       .on('error', (err) => { 
-        this.emit('error', { id: requestId, error: JSON.stringify(err) }) 
-        console.log(err)
+        this.emit('error', { id: requestId, error: JSON.stringify(err) })
+        logger.error(JSON.stringify(err))
       })
       .on('end', () => { 
         this.emit('ended', { id: requestId, transcript: transcript }) 
@@ -80,7 +83,7 @@ class StreamingSpeechClient extends EventEmitter {
         const isFinal = data.results[0] ? data.results[0].isFinal : false
         const text = data.results[0] && data.results[0].alternatives[0] ? data.results[0].alternatives[0].transcript : ""
         if (isFinal) {
-          this.emit('result', { id: requestId, text: text }) 
+          this.emit('intermediate', { id: requestId, text: text }) 
           transcript.push(text)
         }
       })

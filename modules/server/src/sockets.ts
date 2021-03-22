@@ -9,10 +9,10 @@ const startSockets = function(io: SocketServer) {
   io.on('connection', (socket) => {
     logger.info(`${socket.id}: socket connected`)
     
-    const speechClient : StreamingSpeechClient = new StreamingSpeechClient()
+    var speechClient : StreamingSpeechClient | null = new StreamingSpeechClient()
 
-    speechClient.on('result', (result) => {
-      socket.emit('speech/result', result)
+    speechClient.on('intermediate', (result) => {
+      socket.emit('speech/intermediate', result)
     })
     speechClient.on('error', (err) => {
       logger.error(`${socket.id}: audio stream err: ${JSON.stringify(err)}`)
@@ -27,7 +27,7 @@ const startSockets = function(io: SocketServer) {
         if (!_.has(msg,'language') || !_.has(msg,'sampleRate') || !_.has(msg,'requestId')) {
           throw Error("Msg does not contain language/sampleRate/requestId.")
         }
-        speechClient.start({
+        speechClient?.start({
           requestId: msg.requestId,
           languageCode: msg.language, 
           sampleRate: msg.sampleRate, 
@@ -43,19 +43,20 @@ const startSockets = function(io: SocketServer) {
     })
 
     socket.on('audio/data', (data) => {
-        speechClient.push(data)
+        speechClient?.push(data)
     })
 
     socket.on('audio/stop', () => {
-      speechClient.stop()
+      speechClient?.stop()
       logger.info(`${socket.id}: audio stream stopped`)
     })
 
     // cleanup
     socket.on('disconnect', function() {
       logger.info(`${socket.id}: socket disconnected`)
-      speechClient.clear()
-      speechClient.removeAllListeners()
+      speechClient?.clear()
+      speechClient?.removeAllListeners()
+      speechClient = null
     });
 
   })
