@@ -36,7 +36,8 @@ export default {
       }
       setTimeout(() => {
         this.clicked = false
-      }, 200)
+        this.timeout = null
+      }, 500)
     }
   }
 }
@@ -62,10 +63,19 @@ body, html {
 
 .can {
   height: 200px;
-  transition: all .2s ease-in-out;
+  transform: rotate(0deg) scale(1.0);
+}
+
+@keyframes wiggle-animation {
+  0% { transform: rotate(0deg) scaleY(1.0); }
+  33% { transform: rotate(-3deg) scaleY(1.05); }
+  50% { transform: rotate(0deg) scaleY(1.12); }
+  66% { transform: rotate(+3deg) scaleY(1.05); }
+  100% { transform: rotate(0deg) scaleY(1.0); }
 }
 
 .can.clicked {
-  transform: scale(1.3);
+  transform-origin: top center;
+  animation: wiggle-animation .5s infinite;
 }
 </style>

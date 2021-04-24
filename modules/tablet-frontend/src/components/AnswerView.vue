@@ -50,7 +50,7 @@ export default {
       } else {
         this.animation = true
       }
-      this.timeout = setTimeout(() => { this.animation = false }, 4010)
+      this.timeout = setTimeout(() => { this.animation = false }, 8010)
     }
   }
 }
@@ -68,24 +68,25 @@ export default {
 
 @keyframes drop-down-animation {
   0% { top: 30%; opacity: 0 }
-  20% { top: 50%; opacity: 1 }
-  90% { top: 50%; opacity: 1 }
+  10% { top: 50%; opacity: 1 }
+  95% { top: 50%; opacity: 1 }
   100% { top: 53%; opacity: 0 }
 }
 
 .answer-view.animate {
-  animation: 4s ease-in-out 0s drop-down-animation;
+  animation: 8s ease-in-out 0s drop-down-animation;
 }
 
 ul {
   list-style-type: none;
   padding: 0;
+  display: inline
 }
 
 li {
   display: block;
   margin: 0 10px;
-  text-align: left;
+  text-align: center;
 }
 
 .topic {
