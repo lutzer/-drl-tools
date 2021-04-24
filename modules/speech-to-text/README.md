@@ -13,7 +13,12 @@
 
 ## Installation
 
-* install pipx: `brew install pipx; pipx ensurepath`
+* install pipx on osx: `brew install pipx; pipx ensurepath`
+* install pips on raspbian os:
+    * uninstall previous version `sudo apt-get remove pipx`
+    * install pip: `sudo apt-get install python3-pip python3-venv`
+    * then pipx:`python3 -m pip install --user pipx`
+    * then `python3 -m pipx ensurepath`
 * run `pipx install .`
 
 ## Development

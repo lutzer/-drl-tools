@@ -1,8 +1,8 @@
 {
-  "name": "tools-tablet-frontend",
+  "name": "tablet-frontend",
   "version": "1.0.0",
   "description": "A Vue.js project",
-  "author": "",
+  "author": "lutzer <in_the_fishtank@gmx.de>",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
@@ -11,8 +11,8 @@
     "build": "node build/build.js"
   },
   "dependencies": {
-    "vue": "^2.5.2",
-    "vue-router": "^3.0.1"
+    "lodash": "^4.17.21",
+    "vue": "^2.5.2"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",

@@ -1,4 +1,4 @@
-# tools-tablet-frontend
+# tablet-frontend
 
 > A Vue.js project
 
