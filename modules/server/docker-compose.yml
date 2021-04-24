@@ -1,0 +1,10 @@
+services:
+  tools-server:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./logs:/usr/src/server/logs
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /usr/src/server/google-credentials.json
+    restart: unless-stopped

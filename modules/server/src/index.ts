@@ -1,9 +1,28 @@
-import Koa from 'koa'
+import express from 'express'
+import { createServer, Server as HttpServer } from 'http'
+import { Server as SocketServer } from "socket.io";
+import path from 'path'
 
-const port = 3000
+import { config } from './config'
+import { startSockets } from './sockets'
 
-const app = new Koa()
+function startServer() : Promise<{ server: HttpServer, port: Number}> {
+  return new Promise( (resolve) => {
+    const app = express()
+    const http = createServer(app)
+    const io = new SocketServer(http)
 
-const server = app.listen(port, () => {
-  console.log(`server listening on port ${port}`)
-})
+    startSockets(io);
+
+    app.get('/', (req, res) => {
+      res.send('Speech to text server running.')
+      // res.sendFile(path.resolve(__dirname, "../static/index.html"));
+    })
+
+    const server = http.listen(config.port, () => {
+      resolve({server: server, port: config.port})
+    })
+  })
+}
+
+export { startServer }
