@@ -39,7 +39,7 @@ export default {
       setTimeout(() => {
         this.clicked = false
         this.timeout = null
-      }, 500)
+      }, 650)
     }
   },
   created () {
@@ -77,16 +77,30 @@ body, html {
   transform: rotate(0deg) scale(1.0);
 }
 
-@keyframes wiggle-animation {
+/* @keyframes wiggle-animation {
   0% { transform: rotate(0deg) scaleY(1.0); }
   33% { transform: rotate(-3deg) scaleY(1.05); }
   50% { transform: rotate(0deg) scaleY(1.12); }
   66% { transform: rotate(+3deg) scaleY(1.05); }
   100% { transform: rotate(0deg) scaleY(1.0); }
+} */
+
+@keyframes wiggle-animation {
+  0%    { transform: rotate(0deg)   scaleY(1.00); }
+  10%   { transform: rotate(0deg)   scaleY(1.08); }
+  20%   { transform: rotate(+3deg)   scaleY(1.00); }
+  30%   { transform: rotate(0deg)   scaleY(0.94); }
+  40%   { transform: rotate(-3deg)   scaleY(1.00); }
+  50%   { transform: rotate(0deg)   scaleY(1.05); }
+  60%   { transform: rotate(+1deg)   scaleY(1.00); }
+  70%   { transform: rotate(0deg)   scaleY(0.96); }
+  80%   { transform: rotate(-1deg)   scaleY(1.00); }
+  90%   { transform: rotate(0deg)   scaleY(1.02); }
+  100%  { transform: rotate(0deg)   scaleY(1.00); }
 }
 
 .can.clicked {
   transform-origin: top center;
-  animation: wiggle-animation .5s infinite;
+  animation: wiggle-animation ease-out .6s;
 }
 </style>

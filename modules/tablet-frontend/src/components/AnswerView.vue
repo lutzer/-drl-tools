@@ -47,11 +47,11 @@ export default {
       if (this.timeout) {
         this.animation = false
         clearTimeout(this.timeout)
-        setTimeout(() => { this.animation = true }, 10)
+        setTimeout(() => { this.animation = true }, 50)
       } else {
         this.animation = true
       }
-      this.timeout = setTimeout(() => { this.animation = false }, 8010)
+      this.timeout = setTimeout(() => { this.animation = false }, 8050)
     }
   }
 }
