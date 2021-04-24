@@ -4,7 +4,7 @@
       v-on:click="onCanClicked"
       :class='["", clicked && "clicked" ]'
       class="can"
-      src="./assets/dose.jpg">
+      src="@/assets/dose.jpg">
     <AnswerView v-bind:data="answers"/>
   </div>
 </template>
@@ -12,6 +12,7 @@
 <script>
 import AnswerView from './components/AnswerView'
 import { fetchAnswers } from './api'
+import _ from 'lodash'
 
 export default {
   name: 'App',
@@ -27,6 +28,7 @@ export default {
   methods: {
     async onCanClicked () {
       this.clicked = true
+      _.sample(this.audioFiles).play()
       try {
         let res = await fetchAnswers()
         let json = await res.json()
@@ -39,6 +41,13 @@ export default {
         this.timeout = null
       }, 500)
     }
+  },
+  created () {
+    this.audioFiles = [
+      new Audio(require('./assets/dose_klopf1.ogg')),
+      new Audio(require('./assets/dose_klopf2.ogg')),
+      new Audio(require('./assets/dose_klopf3.ogg'))
+    ]
   }
 }
 </script>
@@ -47,6 +56,8 @@ export default {
 body, html {
   margin: 0;
   padding: 0;
+  background: white;
+  color: black;
 }
 
 #app {
@@ -62,7 +73,7 @@ body, html {
 }
 
 .can {
-  height: 200px;
+  height: 250px;
   transform: rotate(0deg) scale(1.0);
 }
 

@@ -3,7 +3,7 @@
     <ul class="answer">
       <li
         v-for="item in answer"
-        :key="item.topic">
+        :key="item.key">
         <span class="topic">{{ item.topic }}</span>
         <span class="text">{{ item.text }}</span>
       </li>
@@ -31,8 +31,9 @@ export default {
         return []
       }
       let dataset = _.sample(this.data)
-      let result = dataset.map((e) => {
+      let result = dataset.map((e, i) => {
         return {
+          key: i,
           topic: e.topic,
           text: _.isString(e.value) ? e.value : e.value.input,
           type: _.isString(e.value) ? 'text' : 'choice'
@@ -62,15 +63,14 @@ export default {
   position: absolute;
   width: 100%;
   max-width: 500px;
-  top: 30%;
   opacity: 0;
 }
 
 @keyframes drop-down-animation {
-  0% { top: 30%; opacity: 0 }
-  10% { top: 50%; opacity: 1 }
-  95% { top: 50%; opacity: 1 }
-  100% { top: 53%; opacity: 0 }
+  0% { top: 35%; opacity: 0; transform: scale(0.7); }
+  10% { top: 60%; opacity: 1; transform: scale(1); }
+  95% { top: 60%; opacity: 1; transform: scale(1); }
+  100% { top: 63%; opacity: 0; transform: scale(1); }
 }
 
 .answer-view.animate {
