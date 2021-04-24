@@ -3,8 +3,9 @@
     <ul class="answer">
       <li
         v-for="item in answer"
-        :key="item.message">
-        {{ item }}
+        :key="item.topic">
+        <span class="topic">{{ item.topic }}</span>
+        <span class="text">{{ item.text }}</span>
       </li>
     </ul>
   </div>
@@ -31,7 +32,11 @@ export default {
       }
       let dataset = _.sample(this.data)
       let result = dataset.map((e) => {
-        return _.isString(e.value) ? e.value : e.value.input
+        return {
+          topic: e.topic,
+          text: _.isString(e.value) ? e.value : e.value.input,
+          type: _.isString(e.value) ? 'text' : 'choice'
+        }
       }, '')
       return result
     }
@@ -76,8 +81,17 @@ ul {
   list-style-type: none;
   padding: 0;
 }
+
 li {
   display: block;
   margin: 0 10px;
+  text-align: left;
+}
+
+.topic {
+  opacity: 0.2;
+  padding-right: 0.5em;
+  /* font-weight: bold; */
+  /* color: #F8FF00 */
 }
 </style>
