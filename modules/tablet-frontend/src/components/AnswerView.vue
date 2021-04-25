@@ -1,13 +1,16 @@
 <template>
-  <div class="answer-view" :class='["", animation && "animate" ]'>
-    <ul class="answer">
-      <li
-        v-for="item in answer"
-        :key="item.key">
-        <span class="topic">{{ item.topic }}</span>
-        <span class="text">{{ item.text }}</span>
-      </li>
-    </ul>
+  <div class="answer-view">
+    <div class="shadow" :class='["", animation && "animate" ]'><div></div></div>
+    <div class="answer" :class='["", animation && "animate" ]'>
+      <ul>
+        <li
+          v-for="item in answer"
+          :key="item.key">
+          <span class="topic">{{ item.topic }}</span>
+          <span class="text">{{ item.text }}</span>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -59,7 +62,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.answer-view {
+.answer {
   position: absolute;
   width: 100%;
   max-width: 500px;
@@ -68,12 +71,12 @@ export default {
 
 @keyframes drop-down-animation {
   0% { top: 35%; opacity: 0; transform: scale(0.7); }
-  10% { top: 60%; opacity: 1; transform: scale(1); }
-  95% { top: 60%; opacity: 1; transform: scale(1); }
-  100% { top: 63%; opacity: 0; transform: scale(1); }
+  10% { top: 50%; opacity: 1; transform: scale(1); }
+  95% { top: 50%; opacity: 1; transform: scale(1); }
+  100% { top: 53%; opacity: 0; transform: scale(1); }
 }
 
-.answer-view.animate {
+.answer.animate {
   animation: 8s ease-in-out 0s drop-down-animation;
 }
 
@@ -87,6 +90,39 @@ li {
   display: block;
   margin: 0 10px;
   text-align: center;
+}
+
+@keyframes shadow-animation {
+  0% { transform: scale(0.0); opacity: 0 }
+  10% { transform: scale(1); opacity: 1 }
+  95% { transform: scale(1); opacity: 1 }
+  100% { transform: scale(0.9); opacity: 0 }
+}
+
+.shadow {
+    position: fixed;
+    bottom: 0px;
+    left:0;
+    width: 100%;
+    opacity: 0;
+
+}
+
+.shadow > div {
+  background: black;
+    height: 50px;
+    width: 300px;
+    max-width: 80%;
+    border-radius: 50%;
+    -webkit-filter: blur(8px);
+    filter: blur(8px);
+    opacity: 0.04;
+    margin: 50px auto;
+}
+
+.shadow.animate {
+  transform-origin: center;
+  animation: 8s ease-in-out 0s shadow-animation;
 }
 
 .topic {
