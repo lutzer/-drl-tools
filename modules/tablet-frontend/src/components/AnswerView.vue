@@ -3,9 +3,7 @@
     <div class="shadow" :class='["", animation && "animate" ]'><div></div></div>
     <div class="answer" :class='["", animation && "animate" ]'>
       <ul>
-        <li
-          v-for="item in answer"
-          :key="item.key">
+        <li v-for="item in answer" :key="item.key">
           <span class="topic">{{ item.topic }}</span>
           <span class="text">{{ item.text }}</span>
         </li>
@@ -16,7 +14,7 @@
 
 <script>
 import config from '../config'
-import _ from 'lodash'
+import _isString from 'lodash/isString'
 
 export default {
   name: 'MainView',
@@ -33,16 +31,14 @@ export default {
       if (!this.data) {
         return []
       }
-      let dataset = _.sample(this.data)
-      let result = dataset.map((e, i) => {
+      return this.data.map((e, i) => {
         return {
           key: i,
           topic: e.topic,
-          text: _.isString(e.value) ? e.value : e.value.input,
-          type: _.isString(e.value) ? 'text' : 'choice'
+          text: _isString(e.value) ? e.value : e.value.input,
+          type: _isString(e.value) ? 'text' : 'choice'
         }
       }, '')
-      return result
     }
   },
   watch: {
@@ -67,13 +63,15 @@ export default {
   width: 100%;
   max-width: 500px;
   opacity: 0;
+  transform: scale(1.0) translate(0, -50%);
+  top: 60%;
 }
 
 @keyframes drop-down-animation {
-  0% { top: 35%; opacity: 0; transform: scale(0.7); }
-  10% { top: 50%; opacity: 1; transform: scale(1); }
-  95% { top: 50%; opacity: 1; transform: scale(1); }
-  100% { top: 53%; opacity: 0; transform: scale(1); }
+  0% { top: 35%; opacity: 0; transform: scale(0.7) translate(0, -50%); }
+  10% { top: 60%; opacity: 1; transform: scale(1) translate(0, -50%); }
+  95% { top: 60%; opacity: 1; transform: scale(1) translate(0, -50%); }
+  100% { top: 63%; opacity: 0; transform: scale(1) translate(0, -50%); }
 }
 
 .answer.animate {
@@ -128,7 +126,7 @@ li {
 .topic {
   opacity: 0.2;
   padding-right: 0.5em;
-  /* font-weight: bold; */
+  font-weight: bold;
   /* color: #F8FF00 */
 }
 </style>
