@@ -1,9 +1,9 @@
 
-import speech, { SpeechClient } from '@google-cloud/speech';
-import { EventEmitter } from 'events';
-import Pumpify from 'pumpify';
-import { merge, Observable, of, Subject, timer } from 'rxjs';
-import { takeUntil, switchMap, mapTo } from 'rxjs/operators';
+import speech, { SpeechClient } from '@google-cloud/speech'
+import { EventEmitter } from 'events'
+import Pumpify from 'pumpify'
+import { merge, Observable, of, Subject, timer } from 'rxjs'
+import { takeUntil, switchMap, mapTo } from 'rxjs/operators'
 
 import { logger } from './logger'
 
@@ -16,14 +16,14 @@ function stopOnTimeout(timeout: number, maxTime: number, initialWait: number, $r
   return merge($reset, timer(initialWait), timer(maxTime).pipe(mapTo('maxtime')))
     .pipe(switchMap((res) => {
       return (res == 'maxtime') ? of(res) : timer(timeout).pipe(mapTo('timeout'))
-    }), takeUntil($stop));
+    }), takeUntil($stop))
 }
 
 function stopOnNoData($reset: Observable<void>, $stop: Observable<void>) {
   return merge($reset, of(''))
-    .pipe(switchMap((res) => {
+    .pipe(switchMap(() => {
       return timer(STREAM_DATA_TIMEOUT)
-    }), takeUntil($stop));
+    }), takeUntil($stop))
 }
 
 class StreamingSpeechClient extends EventEmitter {
@@ -37,7 +37,7 @@ class StreamingSpeechClient extends EventEmitter {
 
   constructor() {
     super()
-    this.speechClient = new speech.SpeechClient();
+    this.speechClient = new speech.SpeechClient()
     this.recognizeStream = null
 
     this.$resetTimeout = new Subject()
@@ -53,21 +53,22 @@ class StreamingSpeechClient extends EventEmitter {
       duration? : number, 
       timeout? : number, 
       initialWait?: number 
-    }) {
+    }) : void {
     
     //see https://github.com/googleapis/nodejs-speech/blob/master/protos/google/cloud/speech/v1p1beta1/cloud_speech.proto#L196
     const config = {
       encoding: 1, 
       sampleRateHertz: sampleRate,
       languageCode: languageCode,
-      audioChannelCount: channelCount
+      audioChannelCount: channelCount,
+      enableAutomaticPunctuation: true
     }
 
     if (this.recognizeStream) {
       this.clear()
     }
 
-    let transcript : string[] = []
+    const transcript : string[] = []
 
     this.recognizeStream = this.speechClient.streamingRecognize({ config, interimResults: true })
       .on('error', (err) => { 
@@ -79,7 +80,7 @@ class StreamingSpeechClient extends EventEmitter {
         this.clear()
       })
       .on('data', data => { 
-        this.$resetTimeout.next();
+        this.$resetTimeout.next()
         const isFinal = data.results[0] ? data.results[0].isFinal : false
         const text = data.results[0] && data.results[0].alternatives[0] ? data.results[0].alternatives[0].transcript : ""
         if (isFinal) {
@@ -104,23 +105,23 @@ class StreamingSpeechClient extends EventEmitter {
     })
   }
 
-  push(chunk : Buffer) {
+  push(chunk : Buffer) : void {
     if (this.recognizeStream?.writable)
       this.recognizeStream.write(chunk)
-    this.$resetDataTimeout.next();
+    this.$resetDataTimeout.next()
   }
 
-  stop() {
-    this.$stopTimeout.next();
+  stop() : void {
+    this.$stopTimeout.next()
     this.recognizeStream?.end()
     this.emit('stopped')
   }
 
-  clear() {
+  clear() : void {
     this.recognizeStream?.removeAllListeners()
     this.recognizeStream?.end()
-    this.recognizeStream = null;
-    this.$stopTimeout.next();
+    this.recognizeStream = null
+    this.$stopTimeout.next()
   }
 }
 

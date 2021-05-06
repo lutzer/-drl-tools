@@ -1,4 +1,4 @@
-import { Server as SocketServer, Socket } from "socket.io"
+import { Server as SocketServer } from "socket.io"
 import _ from 'lodash'
 
 import { logger } from './logger'
@@ -9,7 +9,7 @@ const startSockets = function(io: SocketServer) {
   io.on('connection', (socket) => {
     logger.info(`${socket.id}: socket connected`)
     
-    var speechClient : StreamingSpeechClient | null = new StreamingSpeechClient()
+    let speechClient : StreamingSpeechClient | null = new StreamingSpeechClient()
 
     speechClient.on('intermediate', (result) => {
       socket.emit('speech/intermediate', result)
@@ -57,7 +57,7 @@ const startSockets = function(io: SocketServer) {
       speechClient?.clear()
       speechClient?.removeAllListeners()
       speechClient = null
-    });
+    })
 
   })
 }

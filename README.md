@@ -63,6 +63,43 @@
   ```
 
 * make default sound device: `sudo raspi-config`, select System Options > Audio > wm8960-hifi-0
+* edit `nano ~/.asoundrc` to allow multiple files playback:
+  ```
+  pcm.dmixed {
+    type dmix
+    ipc_key 1024
+    ipc_key_add_uid 0
+    slave.pcm "output"
+  }
+  pcm.dsnooped {
+      type dsnoop
+      ipc_key 1025
+      slave.pcm "input"
+  }
+
+  pcm.!default {
+    type asym
+    playback.pcm {
+      type plug
+      slave.pcm "dmixed"
+    }
+    capture.pcm {
+      type plug
+      slave.pcm "dsnooped"
+    }
+  }
+
+  pcm.output {
+    type hw
+    card 1
+  }
+
+  ctl.!default {
+    type hw
+    card 1
+  }
+  ```
+
 
 ## Install Software
 
@@ -114,4 +151,5 @@
   * enable projects in node-red: `nano ~/.node-red/settings.js`: set `projects.enabled = true`
   * put node-red in autostart: `sudo systemctl enable nodered.service`
   * visit browser on http://raspberrypi.local:1880 and clone project from ` https://github.com/lutzer/drl-tools-flows.git`
+  * install dependencies from node-red package manager
 
