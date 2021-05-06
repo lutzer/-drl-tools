@@ -21,7 +21,7 @@ function stopOnTimeout(timeout: number, maxTime: number, initialWait: number, $r
 
 function stopOnNoData($reset: Observable<void>, $stop: Observable<void>) {
   return merge($reset, of(''))
-    .pipe(switchMap((res) => {
+    .pipe(switchMap(() => {
       return timer(STREAM_DATA_TIMEOUT)
     }), takeUntil($stop))
 }
