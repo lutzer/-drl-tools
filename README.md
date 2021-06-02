@@ -76,7 +76,7 @@
       ipc_key 1025
       slave.pcm "input"
   }
-
+  
   pcm.!default {
     type asym
     playback.pcm {
@@ -88,12 +88,12 @@
       slave.pcm "dsnooped"
     }
   }
-
+  
   pcm.output {
     type hw
     card 1
   }
-
+  
   ctl.!default {
     type hw
     card 1
@@ -152,4 +152,24 @@
   * put node-red in autostart: `sudo systemctl enable nodered.service`
   * visit browser on http://raspberrypi.local:1880 and clone project from ` https://github.com/lutzer/drl-tools-flows.git`
   * install dependencies from node-red package manager
+
+
+
+## Shrink and minimize raspberry pi image
+```
+# find out disk name with diskutil
+diskutil list
+# make image, make sure N is replaced by disk number
+dd if=/dev/rdiskN of=quasselstrippe_image_v0.1_02-06-2021.dmg
+
+# install shrink utility
+curl -LO https://github.com/lisanet/PiShrink-macOS/archive/master.zip
+unzip master
+cd PiShrink-macOS-master
+make
+sudo make install
+
+# shrink image with
+pishrink imagefile.img [newimagefile.img]
+```
 
