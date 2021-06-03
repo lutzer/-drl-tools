@@ -1,6 +1,7 @@
 build
 node_modules
-data
 logs/*
 !logs/.keep
 google-credentials.json
+static
+static/.keep

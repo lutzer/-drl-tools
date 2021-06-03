@@ -7,6 +7,7 @@ Socket server that accepts audio streams and transcribes them. Can only handle 1
 ### with docker
 
 * copy google application credentials file into server root and name it *google-credentials.json*.
+* copy image files in *static* directory
 * build docker image with `docker-compose build`
 * run docker container in detached mode `docker-compose up -d`
 * you can enter the docker container with `docker exec -it tools-server /bin/sh`
