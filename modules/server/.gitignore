@@ -3,5 +3,5 @@ node_modules
 logs/*
 !logs/.keep
 google-credentials.json
-static
-static/.keep
+static/*
+!static/.keep
