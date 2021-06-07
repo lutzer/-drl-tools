@@ -156,20 +156,15 @@
 
 
 ## Shrink and minimize raspberry pi image
-```
-# find out disk name with diskutil
-diskutil list
-# make image, make sure N is replaced by disk number
-dd if=/dev/rdiskN of=quasselstrippe_image_v0.1_02-06-2021.dmg
 
-# install shrink utility
-curl -LO https://github.com/lisanet/PiShrink-macOS/archive/master.zip
-unzip master
-cd PiShrink-macOS-master
-make
-sudo make install
+* create image
+  ```
+  # find out disk name with diskutil
+  diskutil list
+  # make image, make sure N is replaced by disk number
+  dd bs=32m if=/dev/rdiskN of=quasselstrippe_image_v0.1_02-06-2021.dmg
+  ```
 
-# shrink image with
-pishrink imagefile.img [newimagefile.img]
-```
+* shrink image with https://github.com/thhan/Docker-PiShrink
+* zip image
 

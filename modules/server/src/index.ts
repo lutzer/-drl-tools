@@ -19,7 +19,7 @@ function startServer() : Promise<{ server: HttpServer, port: number}> {
       // res.sendFile(path.resolve(__dirname, "../static/index.html"));
     })
 
-    app.use('/static', express.static(config.staticDir))
+    app.use('/public', express.static(config.staticDir))
 
     const server = http.listen(config.port, () => {
       resolve({server: server, port: config.port})
