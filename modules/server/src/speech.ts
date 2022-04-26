@@ -7,7 +7,7 @@ import { takeUntil, switchMap, mapTo } from 'rxjs/operators'
 
 import { logger } from './logger'
 
-const STREAM_DATA_TIMEOUT = 2000 // after what time the stream ends if no data is received
+const STREAM_DATA_TIMEOUT = 5000 // after what time the stream ends if no data is received
 const MAX_DURATION = 60000
 
 function stopOnTimeout(timeout: number, maxTime: number, initialWait: number, $reset: Observable<void>, $stop: Observable<void>) {

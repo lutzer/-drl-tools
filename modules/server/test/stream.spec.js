@@ -7,7 +7,7 @@ const sinon = require("sinon");
 const { startServer } = require('../build/index');
 const { logger } = require('../build/logger');
 
-logger.transports.forEach((t) => (t.silent = true));
+// logger.transports.forEach((t) => (t.silent = true));
 
 const expect = chai.expect
 
@@ -76,6 +76,19 @@ describe('Stream Server Tests', () => {
         socket.close()
     }).timeout(10000)
 
+    it('should throw an error if there is no data', async () => {
+        const socket = await connectSocket()
+
+        const callbackSpy = sinon.spy()
+        socket.on('error', callbackSpy)
+        
+        socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'de', requestId: 'x' })
+
+        await sleep(6000)
+        expect(callbackSpy.calledOnce).to.equal(true)
+        socket.close()
+    }).timeout(10000)
+
     it('should be able to transcribe audio file', async () => {
         const socket = await connectSocket()
         const filepath = __dirname + '/files/my_name_is_siidra.wav'
@@ -91,7 +104,7 @@ describe('Stream Server Tests', () => {
         });
         await new Promise((resolve, reject) => {
             socket.on('speech/ended', (data) => {
-                expect(data.transcript.join()).to.equal('hello my name is Steven')
+                expect(data.transcript.join()).to.equal('Hello, my name is Steve.')
                 resolve()
             })
         })
@@ -126,13 +139,13 @@ describe('Stream Server Tests', () => {
         const filepath = __dirname + '/files/my_name_is_siidra.wav'
 
         const callbackSpy = sinon.spy()
-        socket.on('speech/result', callbackSpy)
+        socket.on('speech/ended', callbackSpy)
 
         function sendFile() {
             const fileStream = fs.createReadStream(filepath, { highWaterMark: 8 * 1024 });
-            socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en', requestId: 'x' })
+            const id = String(Math.random());
             fileStream.on('open', function () {
-                socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en', requestId: 'x' })
+                socket.emit('audio/start', { sampleRate: 44100, bitDepth: 16, language: 'en', requestId: id })
             });
             fileStream.on('data', (chunk) => {
                 socket.emit('audio/data', chunk)

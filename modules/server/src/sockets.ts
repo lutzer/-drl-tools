@@ -15,7 +15,7 @@ const startSockets = function(io: SocketServer) {
       socket.emit('speech/intermediate', result)
     })
     speechClient.on('error', (err) => {
-      logger.error(`${socket.id}: audio stream err: ${JSON.stringify(err)}`)
+      logger.error(`${socket.id}: speech client err: ${JSON.stringify(err)}`)
       socket.emit('error', err)
     })
     speechClient.on('ended', (result) => {
@@ -37,8 +37,8 @@ const startSockets = function(io: SocketServer) {
         })
         logger.info(`${socket.id}: receiving audio stream`)
       } catch(err) {
-        socket.emit('error', err.message)
-        logger.error(err.message)
+        socket.emit('error', JSON.stringify(err))
+        logger.error(err)
       }
     })
 
