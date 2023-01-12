@@ -99,7 +99,7 @@
     card 1
   }
   ```
-
+* run `alsamixer`, press F4 and adjust capture gain to `21`
 
 ## Install Software
 
